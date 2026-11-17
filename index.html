@@ -1,0 +1,10 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PAOPCR | Ingreso</title><link rel="stylesheet" href="assets/style.css"></head>
+<body><div class="lg"><aside><div class="brand"><i>P</i>PAOPCR</div><div><h2>Operación de cafetería y restaurante en un solo sistema</h2><p>Caja, cocina e inventario sincronizados en tu red local, sin depender de internet.</p></div><small>Prototipo de automatización de procesos operativos</small></aside>
+<form id="f"><h1>Iniciar sesión</h1><p class="mut">Ingresa con tu usuario del establecimiento.</p>
+<label>Correo<input name="email" type="email" required autofocus></label><label>Contraseña<input name="password" type="password" required></label>
+<p class="warn" id="err"></p><button class="btn full lg">Ingresar</button></form></div>
+<script src="assets/app.js"></script><script>
+const dest={administrador:'admin.html',cajero:'pos.html',cocinero:'kds.html'};
+$('#f').onsubmit=async e=>{e.preventDefault();try{const d=await api('auth/login',Object.fromEntries(new FormData(e.target)));
+localStorage.setItem('tk',d.token);localStorage.setItem('usr',JSON.stringify(d.user));location=dest[d.user.rol]}catch(x){$('#err').textContent=x.message}};
+</script></body></html>

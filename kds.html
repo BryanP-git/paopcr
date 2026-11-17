@@ -1,0 +1,20 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PAOPCR | Cocina</title><link rel="stylesheet" href="assets/style.css"></head>
+<body class="dark"><header class="top"><div class="brand"><i>P</i>COCINA</div><div class="kh"><span>Pendientes<b id="c1">0</b></span><span>En preparación<b id="c2">0</b></span><span>Listos<b id="c3">0</b></span></div><div class="row"><span id="who" style="opacity:.8"></span><button class="btn sec sm" onclick="logout()">Salir</button></div></header>
+<div class="alerta" id="al"></div>
+<div class="board"><section><h2>Pendientes</h2><div id="col1"></div></section><section><h2>En preparación</h2><div id="col2"></div></section><section><h2>Listos para entregar</h2><div id="col3"></div></section></div><dialog id="dlg"></dialog>
+<script src="assets/app.js"></script><script>
+const u=guard(['cocinero']);$('#who').textContent=u.nombre;
+let data=[],t0=Date.now(),first=true;
+function card(p,now){const s=Math.floor(p.seg+(now-t0)/1000),m=s/60,cls=p.estado==='listo'?'':m<5?'t-ok':m<10?'t-wa':'t-ko';
+ return `<div class="tk ${cls}"><div class="hd"><b>${p.tipo==='llevar'?'Llevar':'Mesa '+esc(p.mesa)} <small style="font-weight:400;opacity:.7">N.° ${p.id}</small></b><span>${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}</span></div>
+ <ul>${p.items.map(i=>`<li><b>${i.cantidad} ×</b> ${esc(i.nombre)}${i.observaciones?`<em>${esc(i.observaciones)}</em>`:''}</li>`).join('')}</ul>
+ ${p.estado==='pendiente'?`<button class="btn bl" data-e="en_preparacion" data-id="${p.id}">Iniciar preparación</button>`:p.estado==='en_preparacion'?`<button class="btn" data-e="listo" data-id="${p.id}">Marcar como listo</button>`:'<span class="mut">Esperando entrega en caja</span>'}</div>`}
+function draw(){const now=Date.now();[1,2,3].forEach((n,i)=>{const l=data.filter(p=>p.estado===['pendiente','en_preparacion','listo'][i]);$('#c'+n).textContent=l.length;$('#col'+n).innerHTML=l.map(p=>card(p,now)).join('')||'<p class="mut">Sin pedidos</p>'});
+ document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>api('pedidos/'+b.dataset.id+'/estado',{estado:b.dataset.e}).catch(e=>toast(e.message)))}
+const beep=()=>{try{const c=new AudioContext(),o=c.createOscillator();o.connect(c.destination);o.start();o.stop(c.currentTime+.25)}catch(e){}};
+stream(o=>{const old=data;
+ if(!first){if(o.some(p=>p.estado==='pendiente'&&!old.find(x=>x.id===p.id)))beep();
+  old.filter(x=>x.estado!=='listo'&&!o.find(p=>p.id===x.id)).forEach(x=>{const a=$('#al');a.textContent='Pedido N.° '+x.id+' cancelado por caja';a.style.display='block';beep();setTimeout(()=>a.style.display='none',8000)})}
+ first=false;data=o;t0=Date.now();draw()});
+setInterval(draw,1000);
+</script></body></html>
